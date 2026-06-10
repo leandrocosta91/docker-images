@@ -1,0 +1,54 @@
+FROM php:8.3-fpm-alpine
+
+# Instalar dependências do sistema
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    bash \
+    curl \
+    mysql-client \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    icu-dev \
+    && rm -rf /var/cache/apk/*
+
+# Instalar e configurar extensões PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo_mysql \
+    mbstring \
+    xml \
+    bcmath \
+    zip \
+    gd \
+    intl \
+    exif \
+    opcache
+
+# Configurar timezone
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/America/Manaus /etc/localtime && \
+    echo "America/Manaus" > /etc/timezone && \
+    apk del tzdata
+
+# Criar diretórios necessários
+RUN mkdir -p /var/www \
+    /var/log/supervisor \
+    /run/nginx
+
+# Definir diretório de trabalho
+WORKDIR /var/www
+
+# Copiar entrypoint simplificado
+COPY ./entrypoint/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Expor porta
+EXPOSE 80
+
+# Entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
