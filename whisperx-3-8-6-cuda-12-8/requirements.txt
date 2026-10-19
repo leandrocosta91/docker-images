@@ -1,0 +1,32 @@
+# Servidor de transcricao da casa (Sprint 90).
+#
+# Versoes PRESAS de proposito. O WhisperX mudou a assinatura do
+# DiarizationPipeline entre versoes (`use_auth_token` virou `token`, e o modelo
+# de diarizacao padrao mudou de pyannote/speaker-diarization-3.1 para
+# speaker-diarization-community-1): subir de versao sozinho quebraria o
+# servidor.py em silencio, na madrugada, com o pipeline rodando.
+#
+# A 3.8.6 e a ultima estavel publicada no PyPI (25/05/2026) e e a versao cuja
+# assinatura o servidor.py usa. Ela exige Python >= 3.10 e < 3.14, torch ~=2.8.0,
+# ctranslate2 >= 4.5.0, faster-whisper >= 1.2.0 e pyannote-audio >= 4.0.0, tudo
+# resolvido pela propria dependencia. O torch NAO e instalado aqui: ele ja vem na
+# imagem base (pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime), e baixar de novo
+# seriam 2,5 GB a mais na imagem.
+whisperx==3.8.6
+
+# O PyAV PRESO NA 18.1.0, e isto nao e zelo: e a correcao de uma falha MEDIDA
+# (Sprint 124, D-85-69). O whisperx pede faster-whisper >= 1.2.0, e o
+# faster-whisper chama av.open(..., metadata_errors="ignore"); o PyAV 19 REMOVEU
+# esse argumento, e com ele instalado a transcricao morreu em TRES placas
+# seguidas no teste de 15/10/2026, sempre na leitura do audio. Com av 18.1.0
+# funciona. O faster-whisper tambem vai preso, porque e ele que faz essa chamada:
+# sem fixar os dois, a resolucao de dependencia pode trazer de novo o par que
+# quebra, de madrugada, com o pipeline rodando.
+faster-whisper==1.2.1
+av==18.1.0
+
+# O servidor HTTP. python-multipart e o que o FastAPI usa para receber o audio
+# por multipart/form-data.
+fastapi==0.143.1
+uvicorn==0.54.0
+python-multipart==0.0.32
